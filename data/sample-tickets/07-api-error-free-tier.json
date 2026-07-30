@@ -1,0 +1,6 @@
+{
+  "ticket_id": "T-1007",
+  "customer_email": "m.chen@globex.com",
+  "subject": "Getting 403 on API calls",
+  "body": "Started getting 403 errors on our integration this morning, nothing changed on our end that we know of."
+}

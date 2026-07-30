@@ -1,0 +1,6 @@
+{
+  "ticket_id": "T-1002",
+  "customer_email": "jsmith@acme.com",
+  "subject": "Invoice looks wrong this month",
+  "body": "Our invoice for this cycle is about 40% higher than usual and I don't see why. We did upgrade plans mid-month, but this seems like too much. Can someone check this?"
+}

@@ -1,0 +1,6 @@
+{
+  "ticket_id": "T-1005",
+  "customer_email": "ops@contoso.net",
+  "subject": "URGENT: production integration down, losing data",
+  "body": "Our webhook integration started returning 401 errors about an hour ago and we are missing inbound events. This is affecting live customer orders on our side. Need this looked at immediately."
+}

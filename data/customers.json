@@ -1,0 +1,7 @@
+[
+  { "email": "jsmith@acme.com", "plan_tier": "enterprise", "account_age_days": 842 },
+  { "email": "priya.k@northwind.io", "plan_tier": "pro", "account_age_days": 210 },
+  { "email": "dev@fourthcoffee.com", "plan_tier": "pro", "account_age_days": 45 },
+  { "email": "m.chen@globex.com", "plan_tier": "free", "account_age_days": 12 },
+  { "email": "ops@contoso.net", "plan_tier": "enterprise", "account_age_days": 1290 }
+]

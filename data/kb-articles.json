@@ -1,0 +1,27 @@
+[
+  {
+    "topic": "password_reset",
+    "keywords": ["password", "reset", "login", "locked out", "cant log in", "can't log in"],
+    "answer_summary": "Send the customer to Settings > Security > Reset Password. Reset links expire after 30 minutes. If the customer says the email never arrived, check their spam folder first, then verify the email on file matches their account before manually triggering a resend."
+  },
+  {
+    "topic": "billing_invoice_mismatch",
+    "keywords": ["invoice", "billing", "charged", "overcharged", "wrong amount"],
+    "answer_summary": "Invoice discrepancies are usually a proration issue from a mid-cycle plan change. Confirm the plan-change date against the invoice line items before escalating to Billing. Do not issue credits directly — flag to Billing team."
+  },
+  {
+    "topic": "data_export_failure",
+    "keywords": ["export", "download", "csv", "report failed", "export stuck"],
+    "answer_summary": "Exports over 50,000 rows can time out on the free and pro tiers. Recommend the customer filter the date range and export in smaller batches, or note that Enterprise tier removes the row cap."
+  },
+  {
+    "topic": "api_integration_error",
+    "keywords": ["api", "integration", "webhook", "401", "403", "error code"],
+    "answer_summary": "Most integration errors trace back to an expired or scoped-incorrectly API key. Confirm the key's scope and expiration in the Developer Settings panel before assuming a platform-side bug."
+  },
+  {
+    "topic": "slow_performance",
+    "keywords": ["slow", "loading", "lag", "performance", "timeout"],
+    "answer_summary": "Known issue on large workspaces (1000+ records) rendering the dashboard view. Workaround: switch to list view, which is not affected. Engineering has an open ticket for a dashboard performance fix."
+  }
+]

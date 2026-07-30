@@ -1,0 +1,6 @@
+{
+  "ticket_id": "T-1004",
+  "customer_email": "ghost@nowhere.example",
+  "subject": "Export not finishing",
+  "body": "I tried to export our full activity report as a CSV and it's been stuck for 20 minutes. About 80,000 rows I think."
+}
