@@ -84,6 +84,29 @@ different severity and action decisions says more than "the agent works
 well" ever could. It signals an understanding of production AI
 reliability, not just prompt engineering.
 
+### Row 5 was later measured properly
+
+That row was an anecdote — one observation, noticed by hand. I built a
+separate evaluation harness to turn it into a measurement:
+**[ticket-triage-eval-harness](https://github.com/harperbrian/ticket-triage-eval-harness)**,
+which runs a fixed 18-ticket set through this agent 8 times each and reports
+how often the classification actually changes.
+
+What it found, measuring this exact commit:
+
+- **The T-1001 instability did not reproduce.** Eight identical runs returned
+  `account_access / P3 / auto_reply` every time. The behaviour in row 5 is real
+  but rarer than 1-in-8.
+- **A different ticket flipped the decision instead.** On the unknown-customer
+  export ticket, the agent auto-replied on 5 of 8 identical runs and escalated
+  on 3 — sending tier-dependent advice to a customer whose tier it had no way
+  to look up.
+- **6 of 17 tickets drifted**, and every run that reached the model returned
+  valid, schema-conforming output.
+
+The harness treats this repo as a read-only measurement target, pinned by
+commit, and does not modify it.
+
 ## Honest framing
 
 This is a real, working artifact built with AI assistance (Claude and
