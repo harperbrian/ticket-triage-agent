@@ -71,35 +71,33 @@ break the pipeline. Run each one and compare the results.
 | # | Trigger | Sample ticket | Observed behavior | Notes |
 |---|---------|---------------|--------------------|-------|
 | 1 | Malformed/empty ticket | `06-malformed-missing-fields.json` | Rejected at the Zod schema layer with `body: ticket body cannot be empty`. The request never reached the API. Zero cost. | Validation runs before any API call by design. Bad input fails fast and cheap instead of burning a token on a request that was always going to fail. |
-| 2 | Ambiguous ticket | `03-ambiguous-vague.json` | Confidence dropped to **0.3** (vs. 0.78–0.95 on clear tickets), no KB match found, and it escalated. | Real gap: even at 0.3 confidence, the schema still forces a specific `category` and `severity`. There's no "unknown" option. The confidence score is honest; the fields underneath it aren't. Name this limitation directly in a production-readiness discussion. |
+| 2 | Ambiguous ticket | `03-ambiguous-vague.json` | Confidence dropped to **0.3** (vs. 0.78 to 0.95 on clear tickets), no KB match found, and it escalated. | Real gap: even at 0.3 confidence, the schema still forces a specific `category` and `severity`. There's no "unknown" option. The confidence score is honest; the fields underneath it aren't. Name this limitation directly in a production-readiness discussion. |
 | 3 | Unknown customer | `04-unknown-customer.json` | `lookup_customer` returned `found: false`. The agent cited the missing account info as the reason it couldn't confidently resolve the ticket. Confidence landed at **0.52**. It escalated. | No crash, no invented account details. The model treated missing context as a reason for caution, not something to ignore. |
 | 4 | Non-JSON final output | `01-clear-password-reset.json` (first live run) | The model wrapped its JSON answer in a sentence of prose and a markdown code fence, despite an explicit "ONLY JSON, nothing else" instruction. The original `JSON.parse` call failed cleanly. It preserved the raw output and didn't crash. | **Fix shipped:** added a defensive `extractJsonText()` step in `agent.ts` that strips markdown fences and extracts the `{...}` substring before parsing. Prompt compliance alone isn't reliable; models drift from formatting instructions even when told explicitly. |
-| 5 | Same-ticket run-to-run non-determinism | `01-clear-password-reset.json` (run twice) | Identical ticket returned **P3 / 0.82 / auto_reply** on one run and **P2 / 0.88 / escalate** on another. | Not a bug. This is a real characteristic of LLM-based agents on borderline-ambiguous input. Identical tickets can get different categorical outcomes between runs. A production deployment needs an answer for that (confidence thresholds, human review sampling) before running unsupervised. |
+| 5 | Same-ticket run-to-run non-determinism | `01-clear-password-reset.json` (run twice) | Identical ticket returned **P3 / 0.82 / auto_reply** on one run and **P2 / 0.88 / escalate** on another. | Not a bug. This is a real characteristic of LLM-based agents on borderline-ambiguous input. Identical tickets can get different categorical outcomes between runs. A production deployment needs an answer for that (confidence thresholds, human review sampling) before running unsupervised. See the measurement below: this observation did not reproduce. |
 | 6 | Nuanced KB instruction-following | `02-billing-mismatch.json` | The KB article said "do not issue credits directly, flag to Billing team." The agent escalated instead of defaulting to auto_reply just because a KB match existed. | Positive finding, not a failure. The agent reads tool-result content, not just tool-result presence, when deciding how to act. |
-| 7 | Clear-cut contrast cases | `05-urgent-p1.json`, `07-api-error-free-tier.json` | P1 outage → 0.95 confidence, escalated even though a plausible KB fix existed, because severity overrode a tidy KB match. Free-tier 403 error → 0.78 confidence, correct P3 auto_reply with a grounded draft. | Confirms the confidence score isn't clustering artificially high. It spans a real 0.3–0.95 range tied to actual ticket clarity across this test set. |
+| 7 | Clear-cut contrast cases | `05-urgent-p1.json`, `07-api-error-free-tier.json` | P1 outage returned 0.95 confidence and escalated even though a plausible KB fix existed, because severity overrode a tidy KB match. Free-tier 403 error returned 0.78 confidence, correct P3 auto_reply with a grounded draft. | Confirms the confidence score isn't clustering artificially high. It spans a real 0.3 to 0.95 range tied to actual ticket clarity across this test set. |
 | 8 | API/transport failure | *(not empirically triggered in this test pass)* | Untested live. Would require deliberately invalidating the API key mid-run. | Handled defensively via try/catch in `agent.ts`, same failure category as the Finnhub connector's 401/429 handling. Flagged as a known gap, not claimed as verified. |
 
-**Strongest single finding:** row 5. Two runs of the same input producing
-different severity and action decisions says more than "the agent works
-well" ever could. It signals an understanding of production AI
-reliability, not just prompt engineering.
+Seven of the eight rows were observed live against the Claude API. Row 8
+is a code-level safeguard that was not triggered.
 
 ### Row 5 was later measured properly
 
-That row was an anecdote — one observation, noticed by hand. I built a
+That row was an anecdote: one observation, noticed by hand. I built a
 separate evaluation harness to turn it into a measurement:
 **[ticket-triage-eval-harness](https://github.com/harperbrian/ticket-triage-eval-harness)**,
 which runs a fixed 18-ticket set through this agent 8 times each and reports
 how often the classification actually changes.
 
-What it found, measuring this exact commit:
+What it found, measuring this agent at the commit the harness pins:
 
 - **The T-1001 instability did not reproduce.** Eight identical runs returned
   `account_access / P3 / auto_reply` every time. The behaviour in row 5 is real
   but rarer than 1-in-8.
 - **A different ticket flipped the decision instead.** On the unknown-customer
   export ticket, the agent auto-replied on 5 of 8 identical runs and escalated
-  on 3 — sending tier-dependent advice to a customer whose tier it had no way
+  on 3, sending tier-dependent advice to a customer whose tier it had no way
   to look up.
 - **6 of 17 tickets drifted**, and every run that reached the model returned
   valid, schema-conforming output.
@@ -111,11 +109,11 @@ commit, and does not modify it.
 
 This is a real, working artifact built with AI assistance (Claude and
 Claude Code). I designed the tool-use flow, the schema validation, and
-the confidence-gated routing logic, and I debugged and validated every
-failure mode listed above. I'm not presenting this as unaided,
-from-scratch software engineering, and it doesn't represent
-production-grade TypeScript authorship independent of AI assistance. Same
-framing applies to my other MCP project:
+the confidence-gated routing logic. I debugged and validated seven of the
+eight failure modes listed above against the live API. I'm not presenting
+this as unaided, from-scratch software engineering, and it doesn't
+represent production-grade TypeScript authorship independent of AI
+assistance. Same framing applies to my other MCP project:
 github.com/harperbrian/finnhub-connector.
 
 ## License
